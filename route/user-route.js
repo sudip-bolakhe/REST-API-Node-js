@@ -1,39 +1,64 @@
-const router = require("express").Router();
-const User = require("../model/user");
+const userRouter = require("express").Router();
+const userService = require("../service/UserService");
+const auth = require("../middleware/auth");
 
-
-router.post("/", async(req, res) =>{
-    const  user = new User({
-        name :req.body.name,
-        address:  req.body.address,
-        date_of_birth : req.body.date_of_birth,
-        email : req.body.email
+userRouter.post("/", auth.autheticate, async (req, res) => {
+  var body = req.body;
+  userService
+    .addUser(body)
+    .then((result) => {
+      res.status(200).json({ Message: result });
+    })
+    .catch((err) => {
+      console.log(err.message);
+      res.status(400).json({ Message: err.message });
     });
-
-    const savedUser = await user.save();
-    res.json(savedUser);
 });
 
-router.get("/", async(req, res) =>{
-    const users = await User.find({});
-    res.json(users);
+userRouter.get("/", auth.autheticate, async (req, res) => {
+  userService.findAll().then((data) => {
+    res.status(200).json(data);
+  });
 });
 
-router.get("/:id", async(req, res) =>{
-    const id = req.params.id;
-    const user = await User.findById(id);
-    res.json(user);
+userRouter.get("/:id", auth.autheticate, async (req, res) => {
+  const id = req.params.id;
+  userService
+    .findById(id)
+    .then((data) => {
+      res.status(200).json(data);
+    })
+    .catch((err) => {
+      console.log(err.message);
+      res.status(400).json({ Message: err.message });
+    });
 });
 
-router.delete("/:id", async(req, res) =>{
-    await User.deleteOne({__id : req.params.id});
-    res.json({"message" : "Deleted successfully"});
+userRouter.delete("/:id", auth.autheticate, async (req, res) => {
+  const id = req.params.id;
+  userService
+    .deleteById(id)
+    .then((message) => {
+      res.status(200).json({ Message: message });
+    })
+    .catch((err) => {
+      console.log(err.message);
+      res.status(400).json({ Message: err.message });
+    });
 });
 
-router.put("/",async(req, res) =>{
-    var toUpdate = req.body;
-    var id = req.body._id;
-    await User.findOneAndUpdate({_id : id}, toUpdate);
-    res.json({"message" :" Updated Successfully"});
+userRouter.put("/", auth.autheticate, async (req, res) => {
+  var toUpdate = req.body;
+  var id = req.body._id;
+  userService
+    .updateUser(id, toUpdate)
+    .then((message) => {
+      res.json({ Message: message });
+    })
+    .catch((err) => {
+      console.log(err.message);
+      res.status(400).json({ Message: err.message });
+    });
 });
-module.exports = router;
+
+module.exports = userRouter;

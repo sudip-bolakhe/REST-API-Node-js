@@ -1,27 +1,17 @@
 const app = require("express")();
 const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
-const dotEnv = require("dotenv");
+const config = require("./config/config");
 
-dotEnv.config();
+const dbConnection = require("./config/database");
+
+dbConnection.connect();
 
 app.use(bodyParser.json());
-app.use(
-    bodyParser.urlencoded({
-        extended:true
-    })
-);
+app.use(bodyParser.urlencoded({ extended: true }));
 
-mongoose.connect(process.env.DATABASE_URL).then(()=>{
-    console.log("Connected to database");
-}).catch((err) => {
-    console.log(err);
+app.listen(config.PORT, () => {
+  console.log("Server started at port " + config.PORT);
 });
-
-app.listen(process.env.PORT, () =>{
-    console.log("Connected to server " + process.env.PORT);
-});
-
 
 app.use("/users", require("./route/user-route"));
-
+app.use("/login", require("./route/authetication-route"));
